@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Student System</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; background-color: #f4f4f4; }
+        .container { max-width: 400px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        input { display: block; width: 100%; margin-bottom: 10px; padding: 8px; box-sizing: border-box; }
+        button { width: 100%; padding: 10px; background: #3ecf8e; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        ul { list-style: none; padding: 0; margin-top: 20px; }
+        li { background: #eee; margin-bottom: 5px; padding: 10px; border-radius: 4px; display: flex; justify-content: space-between; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Add Student</h2>
+    <input id="name" placeholder="Name">
+    <input id="email" placeholder="Email">
+    <input id="course" placeholder="Course">
+    <button onclick="addStudent()">Add Student</button>
+
+    <h2>Student List</h2>
+    <ul id="list"></ul>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+    const SUPABASE_URL = "https://gsgoljuyeufqjlrtveui.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdzZ29sanV5ZXVmcWpscnR2ZXVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3Njc0ODMsImV4cCI6MjA5NDM0MzQ4M30.kKDQSvnvt85IfxuihpLZp3zUqf-UCU50Int8NuRnXxk";
+    
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    async function addStudent() {
+        const name = document.getElementById("name").value;
+        const email = document.getElementById("email").value;
+        const course = document.getElementById("course").value;
+
+        if (!name || !email) return alert("Fields required");
+
+        const { error } = await _supabase
+            .from("students")
+            .insert([{ name, email, course }]);
+
+        if (error) {
+            console.error(error);
+        } else {
+            document.getElementById("name").value = "";
+            document.getElementById("email").value = "";
+            document.getElementById("course").value = "";
+            loadStudents();
+        }
+    }
+
+    async function loadStudents() {
+        const { data, error } = await _supabase
+            .from("students")
+            .select("*")
+            .order('id', { ascending: false });
+
+        if (error) return console.error(error);
+
+        const list = document.getElementById("list");
+        list.innerHTML = "";
+        data.forEach(s => {
+            const li = document.createElement("li");
+            li.innerHTML = `<span>${s.name}</span> <i>${s.course}</i>`;
+            list.appendChild(li);
+        });
+    }
+
+    loadStudents();
+</script>
+
+</body>
+</html>
